@@ -1,0 +1,15 @@
+[
+  {
+    "timestamp_utc": "20250916T070136Z",
+    "model_file": "rf_model_20250916T070136Z.joblib",
+    "n_estimators": 500,
+    "max_depth": null,
+    "random_state": 42,
+    "sklearn_version": "1.7.2",
+    "n_training_rows": 132,
+    "n_features": 21,
+    "features_sha256": "089a51cf2726555e6c78d5b6a36720122aa75c4bb74bd5d68ab39792a7253a7f",
+    "elasticity_summary_mean": 0.5786529950503113,
+    "elasticity_summary_median": 0.5054411759573714
+  }
+]

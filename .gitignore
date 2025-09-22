@@ -1,0 +1,45 @@
+# Python / miljø
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+
+# Artifacts og modeller
+artifacts/
+!artifacts/README_KEEP.md
+*.joblib
+*.pkl
+*.onnx
+
+# Midlertidig / output
+*.xlsx
+*.csv~
+*.tmp
+*.log
+*.bak
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Cache
+.mypy_cache/
+.pytest_cache/
+dist/
+build/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Streamlit
+.streamlit/secrets.toml
