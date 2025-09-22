@@ -64,6 +64,10 @@ DATA_PATH = Path('reg.csv')
 
 st.set_page_config(page_title="Påstigningsprognoser", layout="wide")
 st.title("Påstigningsprognoser – modelldashboard")
+
+# GitHub repo link
+st.markdown("🔗 **GitHub Repository:** [suriram/Pastigninger](https://github.com/suriram/Pastigninger.git)")
+
 st.markdown(
     """
 **Formål:** Dette dashboardet lar deg utforske en maskinlæringsmodell som estimerer antall påstigninger.
