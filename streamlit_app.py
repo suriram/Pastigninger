@@ -14,15 +14,26 @@ def find_artifact(*names: str) -> Path | None:
     Eksempel: find_artifact('reports/model_report.txt','model_report.txt')
     Returnerer Path eller None.
     """
+    # First try with ARTIFACT_DIR
     for rel in names:
         p = ARTIFACT_DIR / rel
         if p.exists():
             return p
-    # fallback: brute force navn uten sti
+    
+    # Fallback to direct paths (for Streamlit Cloud)
+    for rel in names:
+        direct_path = Path('artifacts') / rel
+        if direct_path.exists():
+            return direct_path
+    
+    # Final fallback: brute force search
     base_names = {Path(n).name for n in names}
-    for p in ARTIFACT_DIR.rglob('*'):
-        if p.is_file() and p.name in base_names:
-            return p
+    artifacts_dir = Path('artifacts')
+    if artifacts_dir.exists():
+        for p in artifacts_dir.rglob('*'):
+            if p.is_file() and p.name in base_names:
+                return p
+    
     return None
 
 MODEL_PATH = find_artifact('models/modell_pastigninger.joblib', 'modell_pastigninger.joblib')
@@ -70,14 +81,46 @@ Tips: Kjør `main.py` på nytt etter at du legger til nye historiske data for å
 
 @st.cache_data
 def load_feature_cols():
+    """Load feature columns with multiple fallback strategies"""
+    # Try via find_artifact first
     if FEATURE_PATH and FEATURE_PATH.exists():
         return json.loads(FEATURE_PATH.read_text(encoding='utf-8'))
-    else:
-        # Try direct path since find_artifact might fail on Streamlit Cloud
-        fallback_path = Path('artifacts/metadata/feature_cols.json')
-        if fallback_path.exists():
-            return json.loads(fallback_path.read_text(encoding='utf-8'))
+    
+    # Direct path fallbacks
+    fallback_paths = [
+        Path('artifacts/metadata/feature_cols.json'),
+        Path('./artifacts/metadata/feature_cols.json')
+    ]
+    
+    for path in fallback_paths:
+        if path.exists():
+            return json.loads(path.read_text(encoding='utf-8'))
+    
     return []
+
+def load_csv_with_fallback(primary_path, *fallback_relative_paths):
+    """Generic CSV loader with fallback paths"""
+    if primary_path and primary_path.exists():
+        return pd.read_csv(primary_path)
+    
+    for rel_path in fallback_relative_paths:
+        direct_path = Path('artifacts') / rel_path
+        if direct_path.exists():
+            return pd.read_csv(direct_path)
+    
+    return pd.DataFrame()
+
+def load_json_with_fallback(primary_path, *fallback_relative_paths):
+    """Generic JSON loader with fallback paths"""
+    if primary_path and primary_path.exists():
+        return json.loads(primary_path.read_text(encoding='utf-8'))
+    
+    for rel_path in fallback_relative_paths:
+        direct_path = Path('artifacts') / rel_path
+        if direct_path.exists():
+            return json.loads(direct_path.read_text(encoding='utf-8'))
+    
+    return None
 
 @st.cache_data
 def load_manifest():
@@ -93,43 +136,29 @@ def load_model(path: Path):
     return joblib.load(path)
 
 @st.cache_data
+@st.cache_data
 def load_scenarios():
-    if SCENARIO_PATH and SCENARIO_PATH.exists():
-        return pd.read_csv(SCENARIO_PATH)
-    return pd.DataFrame()
+    return load_csv_with_fallback(SCENARIO_PATH, 'scenarios/scenario_predictions.csv')
 
 @st.cache_data
 def load_shap_importance():
-    if SHAP_IMPORTANCE_PATH and SHAP_IMPORTANCE_PATH.exists():
-        df = pd.read_csv(SHAP_IMPORTANCE_PATH)
-        return df
-    return pd.DataFrame()
+    return load_csv_with_fallback(SHAP_IMPORTANCE_PATH, 'shap/shap_importance.csv')
 
 @st.cache_data
 def load_shap_enriched():
-    if SHAP_ENRICHED_PATH and SHAP_ENRICHED_PATH.exists():
-        return pd.read_csv(SHAP_ENRICHED_PATH)
-    return pd.DataFrame()
+    return load_csv_with_fallback(SHAP_ENRICHED_PATH, 'shap/shap_importance_enriched.csv')
 
 @st.cache_data
 def load_shap_per_area():
-    if SHAP_PER_AREA_PATH and SHAP_PER_AREA_PATH.exists():
-        df = pd.read_csv(SHAP_PER_AREA_PATH)
-        if 'delmarkedsområde' in df.columns:
-            df['delmarkedsområde'] = df['delmarkedsområde'].astype(str)
-            df = df[df['delmarkedsområde'] != '12']
-        return df
-    return pd.DataFrame()
+    df = load_csv_with_fallback(SHAP_PER_AREA_PATH, 'shap/shap_per_area.csv')
+    if not df.empty and 'delmarkedsområde' in df.columns:
+        df['delmarkedsområde'] = df['delmarkedsområde'].astype(str)
+        df = df[df['delmarkedsområde'] != '12']
+    return df
 
 @st.cache_data
 def load_area_metrics():
-    if AREA_METRICS_PATH and AREA_METRICS_PATH.exists():
-        df = pd.read_csv(AREA_METRICS_PATH)
-        if 'delmarkedsområde' in df.columns:
-            df['delmarkedsområde'] = df['delmarkedsområde'].astype(str)
-            df = df[df['delmarkedsområde'] != '12']
-        return df
-    return pd.DataFrame()
+    return load_csv_with_fallback(AREA_METRICS_PATH, 'diagnostics/area_metrics.csv')
 
 @st.cache_data
 def load_validation():
@@ -148,61 +177,36 @@ def load_pdp():
 
 @st.cache_data
 def load_drop_importance():
-    if DROP_COL_PATH and DROP_COL_PATH.exists():
-        try:
-            return pd.read_csv(DROP_COL_PATH)
-        except Exception:
-            return pd.DataFrame()
-    return pd.DataFrame()
+    return load_csv_with_fallback(DROP_COL_PATH, 'diagnostics/drop_column_importance.csv')
 
 @st.cache_data
 def load_shap_bootstrap():
-    if SHAP_BOOT_PATH and SHAP_BOOT_PATH.exists():
-        try:
-            return pd.read_csv(SHAP_BOOT_PATH)
-        except Exception:
-            return pd.DataFrame()
-    return pd.DataFrame()
+    return load_csv_with_fallback(SHAP_BOOT_PATH, 'shap/shap_importance_bootstrap.csv')
 
 @st.cache_data
 def load_residuals():
-    if RESIDUALS_PATH and RESIDUALS_PATH.exists():
-        try:
-            return pd.read_csv(RESIDUALS_PATH)
-        except Exception:
-            return pd.DataFrame()
-    return pd.DataFrame()
+    return load_csv_with_fallback(RESIDUALS_PATH, 'diagnostics/residuals.csv')
 
-@st.cache_data
 def load_residual_stats():
-    if RESIDUAL_STATS_PATH and RESIDUAL_STATS_PATH.exists():
-        try:
-            return json.loads(RESIDUAL_STATS_PATH.read_text(encoding='utf-8'))
-        except Exception:
-            return {}
-    return {}
+    return load_json_with_fallback(RESIDUAL_STATS_PATH, 'diagnostics/residual_stats.json')
 
-@st.cache_data
-def load_oot():
-    if OOT_PATH and OOT_PATH.exists():
-        try:
-            return json.loads(OOT_PATH.read_text(encoding='utf-8'))
-        except Exception:
-            return {}
-    return {}
-
-@st.cache_data
+def load_oot_metrics():
+    return load_json_with_fallback(OOT_PATH, 'diagnostics/oot_metrics.json')
 def load_elasticity_artifacts():
-    summary = None
-    if ELASTICITY_GLOBAL_SUMMARY_PATH and ELASTICITY_GLOBAL_SUMMARY_PATH.exists():
-        try:
-            summary = json.loads(ELASTICITY_GLOBAL_SUMMARY_PATH.read_text(encoding='utf-8'))
-        except Exception:
-            summary = None
-    df_global = pd.read_csv(ELASTICITY_GLOBAL_PATH) if (ELASTICITY_GLOBAL_PATH and ELASTICITY_GLOBAL_PATH.exists()) else pd.DataFrame()
-    df_area = pd.read_csv(ELASTICITY_AREA_PATH) if (ELASTICITY_AREA_PATH and ELASTICITY_AREA_PATH.exists()) else pd.DataFrame()
-    df_scen = pd.read_csv(ELASTICITY_SCENARIO_PATH) if (ELASTICITY_SCENARIO_PATH and ELASTICITY_SCENARIO_PATH.exists()) else pd.DataFrame()
-    method_text = ELASTICITY_METHOD_PATH.read_text(encoding='utf-8') if (ELASTICITY_METHOD_PATH and ELASTICITY_METHOD_PATH.exists()) else ""
+    summary = load_json_with_fallback(ELASTICITY_GLOBAL_SUMMARY_PATH, 'elasticity/population_elasticity_summary.json')
+    df_global = load_csv_with_fallback(ELASTICITY_GLOBAL_PATH, 'elasticity/population_elasticity.csv')
+    df_area = load_csv_with_fallback(ELASTICITY_AREA_PATH, 'elasticity/population_elasticity_by_area.csv')
+    df_scen = load_csv_with_fallback(ELASTICITY_SCENARIO_PATH, 'elasticity/population_elasticity_scenarios.csv')
+    
+    # Load method text
+    method_text = ""
+    if ELASTICITY_METHOD_PATH and ELASTICITY_METHOD_PATH.exists():
+        method_text = ELASTICITY_METHOD_PATH.read_text(encoding='utf-8')
+    else:
+        method_path = Path('artifacts/elasticity/elasticity_report.txt')
+        if method_path.exists():
+            method_text = method_path.read_text(encoding='utf-8')
+    
     return summary, df_global, df_area, df_scen, method_text
 
 @st.cache_data
@@ -320,7 +324,7 @@ drop_imp_df = load_drop_importance()
 shap_boot_df = load_shap_bootstrap()
 residuals_df = load_residuals()
 resid_stats = load_residual_stats()
-oot_metrics = load_oot()
+oot_metrics = load_oot_metrics()
 elasticity_summary, elasticity_global_df, elasticity_area_df, elasticity_scen_df, elasticity_method_text = load_elasticity_artifacts()
 # Ekskluder Area 12 fra elastisitets-områdedata hvis tilstede
 if not elasticity_area_df.empty and 'delmarkedsområde' in elasticity_area_df.columns:
