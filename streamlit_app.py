@@ -219,12 +219,12 @@ def load_history():
 
 def build_input_df(year, quarter, population, feature_cols, hist_df: pd.DataFrame, t_mode: str):
     row = {
-        'år': year,
-        'kvartall': quarter,
-        'anall innbyggere': population,
+        'år': int(year),
+        'kvartall': int(quarter),
+        'anall innbyggere': float(population),
         't_index': 9999,  # default fallback
-        'sin_q': np.sin(2 * np.pi * (quarter / 4.0)),
-        'cos_q': np.cos(2 * np.pi * (quarter / 4.0)),
+        'sin_q': float(np.sin(2 * np.pi * (quarter / 4.0))),
+        'cos_q': float(np.cos(2 * np.pi * (quarter / 4.0))),
     }
     if not hist_df.empty:
         # Finn eksisterende t_index hvis historisk punkt
@@ -237,11 +237,18 @@ def build_input_df(year, quarter, population, feature_cols, hist_df: pd.DataFram
         if t_mode == 'Uten t_index (sett til 0)':
             row['t_index'] = 0
     for q in [1,2,3,4]:
-        row[f'Q_{q}'] = 1 if quarter == q else 0
+        row[f'Q_{q}'] = int(1 if quarter == q else 0)
     for f in feature_cols:
         if f not in row:
-            row[f] = 0
-    return pd.DataFrame([row])[feature_cols]
+            row[f] = float(0)
+    df = pd.DataFrame([row])[feature_cols]
+    # Ensure consistent data types
+    for col in df.columns:
+        if col in ['år', 'kvartall', 't_index'] or col.startswith('Q_') or col.startswith('area_'):
+            df[col] = df[col].astype('int64')
+        else:
+            df[col] = df[col].astype('float64')
+    return df
 
 feature_cols = load_feature_cols()
 manifest_df = load_manifest()
@@ -400,10 +407,23 @@ with st.expander("ℹ️ Hvordan tolke prediksjonen?", expanded=False):
     )
 
 if st.button("Prediker", help="Kjør modell på input over"):
-    X_row = build_input_df(year, quarter, population, feature_cols, hist_df, t_mode)
-    pred = model.predict(X_row)[0]
-    st.success(f"Estimert påstigninger: {pred:,.0f}")
-    st.caption(f"(Tall avrundet) – t_index brukt: {int(X_row['t_index'].iloc[0])}")
+    X_row = None
+    try:
+        X_row = build_input_df(year, quarter, population, feature_cols, hist_df, t_mode)
+        st.write("Debug - Input data types:", X_row.dtypes.to_dict())
+        st.write("Debug - Input shape:", X_row.shape)
+        st.write("Debug - Input sample:", X_row.iloc[0].to_dict())
+        pred = model.predict(X_row)[0]
+        st.success(f"Estimert påstigninger: {pred:,.0f}")
+        st.caption(f"(Tall avrundet) – t_index brukt: {int(X_row['t_index'].iloc[0])}")
+    except Exception as e:
+        st.error(f"Prediction error: {str(e)}")
+        st.write("Model expects features:", feature_cols)
+        if X_row is not None:
+            st.write("Input DataFrame columns:", list(X_row.columns))
+            st.write("Input DataFrame dtypes:", X_row.dtypes.to_dict())
+        else:
+            st.write("Failed to create input DataFrame")
 
 st.markdown("---")
 st.subheader("Scenario-prediksjoner")
