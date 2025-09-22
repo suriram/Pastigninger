@@ -16,13 +16,17 @@ artifacts/
 !artifacts/models/*.json
 !artifacts/cleaned_data.csv
 !artifacts/INDEX.txt
+!artifacts/reports/
+!artifacts/reports/*.txt
+!artifacts/elasticity/
+!artifacts/elasticity/*.txt
+!artifacts/elasticity/*.csv
+!artifacts/elasticity/*.json
 # Exclude large/temporary artifacts
 artifacts/shap/
 artifacts/diagnostics/
 artifacts/distribution/
 artifacts/scenarios/
-artifacts/elasticity/
-artifacts/reports/
 *.pkl
 *.onnx
 

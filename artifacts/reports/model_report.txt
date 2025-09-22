@@ -1,0 +1,65 @@
+BASELINE MODELLER:
+  Lineær regresjon   R²=0.984 RMSE=1478017
+  Random Forest      R²=0.989 RMSE=1221320
+  Gradient Boosting  R²=0.993 RMSE=973712
+
+VALGT MODELL:
+  Gradient Boosting (CV R²=0.997)
+  Versjon: 20250916T071006Z_7c7a1071
+  Parametre: {'learning_rate': 0.05, 'max_depth': 2, 'n_estimators': 400, 'subsample': 0.9}
+
+FEATURES BRUKT:
+  - anall innbyggere
+  - år
+  - t_index
+  - sin_q
+  - cos_q
+  - t_index_area
+  - Q_1
+  - Q_2
+  - Q_3
+  - Q_4
+  - AREA_1
+  - AREA_10
+  - AREA_11
+  - AREA_2
+  - AREA_3
+  - AREA_4
+  - AREA_5
+  - AREA_6
+  - AREA_7
+  - AREA_8
+  - AREA_9
+
+TOPP FEATURES (SHAP gj.snitt abs, topp 10):
+  anall innbyggere 4,038,784
+  AREA_1          3,367,696
+  AREA_9          497,275
+  AREA_3          342,514
+  AREA_2          260,233
+  AREA_7          159,207
+  Q_3             127,998
+  t_index         126,106
+  cos_q           93,344
+  sin_q           92,980
+
+BEFOLKNINGSELASTISITET:
+  Gyldige observasjoner: 132
+  Mean elastisitet: 1.5479
+  Median: 0.4100 (P25=0.0497, P75=1.8804)
+  Lineær modell koeff (dY/dPop): 78.570726
+  Lineær elastisitet (ved gjennomsnitt): 1.2894
+  Tolkning: En elastisitet på 0.80 betyr at 1% økning i befolkning gir ca 0.8% økning i påstigninger gitt dagens nivå.
+
+PER-OMRÅDE METRIKKER (R² / RMSE):
+  Område 8.0: R²=-0.321 RMSE=70157 N=12
+  Område 4.0: R²=0.357 RMSE=47270 N=12
+  Område 11.0: R²=0.436 RMSE=83831 N=12
+  Område 5.0: R²=0.545 RMSE=43613 N=12
+  Område 6.0: R²=0.892 RMSE=109854 N=12
+  Område 7.0: R²=0.904 RMSE=48107 N=12
+  Område 10.0: R²=0.926 RMSE=105635 N=12
+  Område 2.0: R²=0.935 RMSE=130699 N=12
+  Område 9.0: R²=0.937 RMSE=243105 N=12
+  Område 3.0: R²=0.978 RMSE=52931 N=12
+  Område 1.0: R²=0.997 RMSE=163988 N=12

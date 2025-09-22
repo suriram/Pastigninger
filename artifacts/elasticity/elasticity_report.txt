@@ -1,0 +1,44 @@
+BEFOLKNINGSELASTISITET – METODER OG RESULTATER
+
+Metode:
+  Elastisitet beregnes punktvis som (dY/dPop)*(Pop/Y) der dY/dPop estimeres via sentral differanse med ±1% av befolkningen (minst 1).
+  Scenarioversjonen bruker samme metode på framtidsscenariorader.
+  Per-område resultat aggregerer median og kvartiler av gyldige elastisiteter.
+
+Forklaring / tolkning:
+  - 'Globalt sammendrag' er IKKE en egen modell uten områder, men et aggregat (samlet for alle punktvise elastisiteter i datasettet).
+  - 'mean' kan trekkes opp av enkelte høye verdier; 'median' gir ofte et mer robust uttrykk for typisk respons.
+  - p25/p75 viser interkvartilspennet (variabilitet). Stor avstand indikerer heterogen effekt over tid/observasjoner.
+  - Negative elastisiteter kan oppstå når lokal modellstruktur eller støy gjør at marginalprediksjon synker ved økt befolkning.
+  - 'linear_coeff' er koeffisienten til befolkning fra lineær referansemodell (separat regressjon) og 'linear_mean_elasticity_at_means' er elastisitet beregnet ved å bruke denne lineære koeffisienten i datapunktet med gjennomsnittsverdier.
+  - Punktvis elastisitet er lokal (marginal) – gjelder små endringer (~1%). Ikke anta lineær skalering for store sjokk uten videre analyse.
+  - Per-område tall er beregnet etter at aggregert område (12) er filtrert bort dersom det fantes i data.
+  - Høy spredning mellom områder kan indikere strukturelle forskjeller eller datagrunnlag med ulik kvalitet.
+
+
+Globalt sammendrag:
+  n_valid: 132
+  mean: 1.5478698265950273
+  median: 0.40997328415269685
+  p25: 0.049655925951200136
+  p75: 1.880381563519797
+  linear_coeff: 78.57072573927879
+  linear_mean_elasticity_at_means: 1.2894052728715009
+
+Per-område (første 20 rader):
+  Område 1.0: n=12.0 mean=1.3137591959872472 median=0.9170050631435476 p25=0.5749910535232604 p75=2.1953356799819383
+  Område 10.0: n=12.0 mean=5.715358870093394 median=6.481152406130597 p25=3.651840229664943 p75=7.421059278788068
+  Område 11.0: n=12.0 mean=5.134354228938768 median=5.218411438723809 p25=4.807629163678268 p75=5.936573738276511
+  Område 2.0: n=12.0 mean=0.5333137530054989 median=0.4657860645715712 p25=0.399949201000221 p75=0.6984197150434418
+  Område 3.0: n=12.0 mean=0.150703004859188 median=0.1481187650609456 p25=0.0385036398715922 p75=0.1963359284226705
+  Område 4.0: n=12.0 mean=0.0339717470557269 median=0.0 p25=0.0 p75=0.0
+  Område 5.0: n=12.0 mean=-0.1232718157228706 median=-0.1054932681601631 p25=-0.2080843033890621 p75=0.0
+  Område 6.0: n=12.0 mean=1.0993038154626236 median=0.7253365826639505 p25=0.4423583463874343 p75=0.9945532021100388
+  Område 7.0: n=12.0 mean=0.1335271593734366 median=0.1699183575541921 p25=0.1186485728787318 p75=0.1833794732826782
+  Område 8.0: n=12.0 mean=0.3233189075737004 median=0.3500413984099004 p25=0.2201974062271798 p75=0.4271458291630419
+  Område 9.0: n=12.0 mean=2.712229225918586 median=2.79295962144508 p25=0.743761536766309 p75=4.89597552521283
+
+Scenario-elastisitet (aggregert etter scenario):
+  basis: mean=0.7307 median=0.0000 n=44
+  minus2pct: mean=1.8313 median=0.4274 n=44
+  pluss2pct: mean=1.0106 median=0.0000 n=44
