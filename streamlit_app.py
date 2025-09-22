@@ -218,14 +218,34 @@ def load_history():
 
 
 def build_input_df(year, quarter, population, feature_cols, hist_df: pd.DataFrame, t_mode: str):
+    """Build input DataFrame with robust feature name handling for encoding issues."""
+    
+    # Start med grunnleggende features 
     row = {
-        'år': year,
-        'kvartall': quarter,
         'anall innbyggere': population,
         't_index': 9999,  # default fallback
         'sin_q': np.sin(2 * np.pi * (quarter / 4.0)),
         'cos_q': np.cos(2 * np.pi * (quarter / 4.0)),
     }
+    
+    # Håndter år-kolonnen robust (encoding-safe)
+    # Finn den faktiske år-kolonnen i feature_cols 
+    year_col = None
+    for col in feature_cols:
+        if 'år' in col or 'ar' in col or 'Ã¥r' in col:
+            year_col = col
+            break
+    
+    if year_col:
+        row[year_col] = year
+    else:
+        # Fallback - prøv begge varianter
+        row['år'] = year
+        row['Ã¥r'] = year
+        
+    # Kvartall for debugging (ikke i model)
+    row['kvartall'] = quarter
+    
     if not hist_df.empty:
         # Finn eksisterende t_index hvis historisk punkt
         match = hist_df[(hist_df['år']==year) & (hist_df['kvartall']==quarter)]
@@ -236,12 +256,19 @@ def build_input_df(year, quarter, population, feature_cols, hist_df: pd.DataFram
             row['t_index'] = int(hist_df['t_index'].max() + 1)
         if t_mode == 'Uten t_index (sett til 0)':
             row['t_index'] = 0
+    
+    # Quarterly dummies
     for q in [1,2,3,4]:
         row[f'Q_{q}'] = 1 if quarter == q else 0
+    
+    # Ensure all feature_cols exist (default to 0)
     for f in feature_cols:
         if f not in row:
             row[f] = 0
-    return pd.DataFrame([row])[feature_cols]
+    
+    # Return DataFrame with exact column order
+    df = pd.DataFrame([row])
+    return df[feature_cols]
 
 feature_cols = load_feature_cols()
 manifest_df = load_manifest()
@@ -267,6 +294,32 @@ else:
     model_path = MODEL_PATH
 
 model = load_model(model_path)
+
+# Debug: Vis encoding info
+with st.expander("🔍 Debug Info", expanded=False):
+    st.write("**Feature columns from JSON:**")
+    st.write(feature_cols[:10])  
+    if model is not None:
+        st.write("**Model expects:**")
+        st.write(list(model.feature_names_in_[:10]))
+        
+        # Check for encoding issues
+        json_set = set(feature_cols)
+        model_set = set(model.feature_names_in_)
+        if json_set != model_set:
+            st.error("⚠️ Feature name mismatch detected!")
+            st.write("Missing in JSON:", model_set - json_set)
+            st.write("Extra in JSON:", json_set - model_set)
+            
+            # Check for common encoding issues
+            for model_feat in model.feature_names_in_:
+                if model_feat not in feature_cols:
+                    for json_feat in feature_cols:
+                        if model_feat.replace('å', 'Ã¥') == json_feat or model_feat.replace('Ã¥', 'å') == json_feat:
+                            st.write(f"Encoding issue: '{model_feat}' vs '{json_feat}'")
+        else:
+            st.success("✅ Feature names match perfectly")
+
 scenarios_df = load_scenarios()
 shap_imp = load_shap_importance()
 shap_enriched = load_shap_enriched()
@@ -400,10 +453,38 @@ with st.expander("ℹ️ Hvordan tolke prediksjonen?", expanded=False):
     )
 
 if st.button("Prediker", help="Kjør modell på input over"):
-    X_row = build_input_df(year, quarter, population, feature_cols, hist_df, t_mode)
-    pred = model.predict(X_row)[0]
-    st.success(f"Estimert påstigninger: {pred:,.0f}")
-    st.caption(f"(Tall avrundet) – t_index brukt: {int(X_row['t_index'].iloc[0])}")
+    try:
+        X_row = build_input_df(year, quarter, population, feature_cols, hist_df, t_mode)
+        
+        # Debug info før prediksjon
+        st.write("**Debug: Input DataFrame info**")
+        st.write(f"Shape: {X_row.shape}")
+        st.write(f"Columns: {list(X_row.columns)}")
+        
+        # Check feature name matching
+        missing_features = set(model.feature_names_in_) - set(X_row.columns)
+        extra_features = set(X_row.columns) - set(model.feature_names_in_)
+        
+        if missing_features:
+            st.error(f"Missing features: {missing_features}")
+        if extra_features:
+            st.warning(f"Extra features: {extra_features}")
+            
+        if not missing_features:  # Only predict if no missing features
+            pred = model.predict(X_row)[0]
+            st.success(f"Estimert påstigninger: {pred:,.0f}")
+            st.caption(f"(Tall avrundet) – t_index brukt: {int(X_row['t_index'].iloc[0])}")
+        else:
+            st.error("Kan ikke predikere på grunn av manglende features. Sjekk encoding/feature matching over.")
+            
+    except Exception as e:
+        st.error(f"Prediksjons-feil: {e}")
+        st.write("**Debug info:**")
+        st.write(f"Feature cols: {feature_cols}")
+        if 'X_row' in locals():
+            st.write(f"Input columns: {list(X_row.columns)}")
+            st.write(f"Model expects: {list(model.feature_names_in_)}")
+        st.exception(e)
 
 st.markdown("---")
 st.subheader("Scenario-prediksjoner")
