@@ -8,10 +8,21 @@ __pycache__/
 venv/
 env/
 
-# Artifacts og modeller
+# Artifacts og modeller (selective inclusion for Streamlit)
 artifacts/
 !artifacts/README_KEEP.md
-*.joblib
+!artifacts/models/
+!artifacts/models/*.joblib
+!artifacts/models/*.json
+!artifacts/cleaned_data.csv
+!artifacts/INDEX.txt
+# Exclude large/temporary artifacts
+artifacts/shap/
+artifacts/diagnostics/
+artifacts/distribution/
+artifacts/scenarios/
+artifacts/elasticity/
+artifacts/reports/
 *.pkl
 *.onnx
 
