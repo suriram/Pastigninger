@@ -63,7 +63,7 @@ ELASTICITY_METHOD_PATH = find_artifact('elasticity/elasticity_report.txt', 'elas
 DATA_PATH = Path('reg.csv')
 
 st.set_page_config(page_title="Påstigningsprognoser", layout="wide")
-st.title("🚍 Påstigningsprognoser – modell dashboard")
+st.title("Påstigningsprognoser – modelldashboard")
 st.markdown(
     """
 **Formål:** Dette dashboardet lar deg utforske en maskinlæringsmodell som estimerer antall påstigninger.
