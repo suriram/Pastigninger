@@ -11,7 +11,7 @@ En maskinlæringsbasert modell for å forutsi påstigninger i kollektivtransport
 - **Robust diagnostikk** (PDP, out-of-time validering, bootstrap intervaller)
 - **Excel-eksport** for leveranse til stakeholdere
 
-## 🚀 Kom i gang
+##  Kom i gang
 
 ### Lokalt oppsett
 
