@@ -69,7 +69,26 @@ Tips: Kjør `main.py` på nytt etter at du legger til nye historiske data for å
 def load_feature_cols():
     if FEATURE_PATH and FEATURE_PATH.exists():
         return json.loads(FEATURE_PATH.read_text(encoding='utf-8'))
-    return []
+    else:
+        # Debug: Try fallback paths on Streamlit Cloud
+        fallback_paths = [
+            Path('artifacts/metadata/feature_cols.json'),
+            Path('./artifacts/metadata/feature_cols.json'), 
+            Path('metadata/feature_cols.json'),
+            Path('./metadata/feature_cols.json')
+        ]
+        
+        for fallback_path in fallback_paths:
+            if fallback_path.exists():
+                st.write(f"🔍 Found feature_cols at fallback path: {fallback_path}")
+                return json.loads(fallback_path.read_text(encoding='utf-8'))
+        
+        # Debug info if all paths fail
+        st.error(f"❌ Could not find feature_cols.json. FEATURE_PATH={FEATURE_PATH}")
+        st.write("Available paths:")
+        for path in fallback_paths:
+            st.write(f"  - {path}: exists={path.exists()}")
+        return []
 
 @st.cache_data
 def load_manifest():
@@ -295,10 +314,30 @@ else:
 
 model = load_model(model_path)
 
+# Critical fallback if feature_cols is empty
+if not feature_cols and model is not None:
+    st.warning("⚠️ Using model feature names as fallback since JSON loading failed")
+    feature_cols = list(model.feature_names_in_)
+
 # Debug: Vis encoding info
-with st.expander("🔍 Debug Info", expanded=False):
+with st.expander("🔍 Debug Info", expanded=True):  # Expanded by default for cloud debugging
     st.write("**Feature columns from JSON:**")
     st.write(feature_cols[:10])  
+    st.write(f"**FEATURE_PATH found:** {FEATURE_PATH}")
+    
+    # List files in artifacts directory for debugging
+    artifacts_dir = Path('artifacts')
+    if artifacts_dir.exists():
+        st.write("**Files in artifacts/metadata:**")
+        metadata_dir = artifacts_dir / 'metadata' 
+        if metadata_dir.exists():
+            metadata_files = list(metadata_dir.glob('*'))
+            st.write([f.name for f in metadata_files])
+        else:
+            st.write("metadata/ directory not found!")
+    else:
+        st.write("artifacts/ directory not found!")
+    
     if model is not None:
         st.write("**Model expects:**")
         st.write(list(model.feature_names_in_[:10]))
