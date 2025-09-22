@@ -1,8 +1,8 @@
-# 🚍 Påstigningsprognoser - ML Dashboard
+# Påstigningsprognoser - ML Dashboard
 
 En maskinlæringsbasert modell for å forutsi påstigninger i kollektivtransport basert på befolkning, tid og sesongvariasjoner.
 
-## 📊 Funksjoner
+## Funksjoner
 
 - **Interaktiv Streamlit dashboard** med manuell prediksjon og scenariovisninger
 - **Avansert ML-pipeline** (Linear Regression, Random Forest, Gradient Boosting)
@@ -11,7 +11,7 @@ En maskinlæringsbasert modell for å forutsi påstigninger i kollektivtransport
 - **Robust diagnostikk** (PDP, out-of-time validering, bootstrap intervaller)
 - **Excel-eksport** for leveranse til stakeholdere
 
-## 🚀 Kom i gang
+##  Kom i gang
 
 ### Lokalt oppsett
 
@@ -42,7 +42,7 @@ streamlit run streamlit_app.py
 
 Appen starter automatisk på første besøk og redeployer ved push til main branch.
 
-## 📁 Prosjektstruktur
+## Prosjektstruktur
 
 ```
 mariaReg/
@@ -66,7 +66,7 @@ mariaReg/
     └── distribution/         # Modellpakker for deling
 ```
 
-## 🔄 Arbeidsflyt
+## Arbeidsflyt
 
 ### 1. Trene modell
 ```bash
@@ -86,7 +86,7 @@ python export_excel_package.py
 ```
 Lager `modell_leveranse_<timestamp>.xlsx` med alle hovedresultater.
 
-## 🧠 Modelldetaljer
+## Modelldetaljer
 
 - **Algoritmer**: Linear Regression, Random Forest, Gradient Boosting
 - **Features**: Befolkning, år, kvartalsesong (sin/cos + dummies), tidsindeks, område-dummies
@@ -94,20 +94,20 @@ Lager `modell_leveranse_<timestamp>.xlsx` med alle hovedresultater.
 - **Tolkbarhet**: SHAP global/lokal, Partial Dependence Plots
 - **Elastisitet**: Punktvis (dY/dPop)*(Pop/Y) via sentral differanse ±1%
 
-## 📈 Tolkningseksempler
+## Tolkningseksempler
 
 **Elastisitet = 0.8**: 1% økning i befolkning → ~0.8% økning i påstigninger  
 **Negativ elastisitet**: Modellen fanger opp ikke-lineære effekter eller lokale mønstre  
 **Høy spredning mellom områder**: Indikerer strukturelle forskjeller i responsivitet
 
-## ⚠️ Begrensninger
+##  Begrensninger
 
 - **Ikke kausalt**: Modellen beskriver mønstre, ikke årsak-virkning
 - **Punktvis elastisitet**: Gjelder marginale endringer (~1%), ikke store sjokk
 - **Dataavhengig**: Kvalitet avhenger av representativitet i treningsdata
 - **Temporal scope**: Ekstrapolering utenfor treningsperiode kan være upresis
 
-## 🛠️ Avanserte funksjoner
+## Avanserte funksjoner
 
 ### Custom scenarios
 Legg til egen CSV med kolonner: `år`, `kvartall`, `anall innbyggere`, (evt. `delmarkedsområde`)
@@ -121,13 +121,12 @@ Sammenlign elastisiteter på tvers av algoritmer.
 ### Modellpakker
 RF-script genererer zip-pakker i `artifacts/distribution/` for deling med andre team.
 
-## 📞 Support
+## Support
 
 For spørsmål om modellspesifikasjoner, se `artifacts/reports/model_report.txt` og `artifacts/elasticity/elasticity_report.txt` etter kjøring av `main.py`.
 
 ---
 
-*Bygget med Streamlit, scikit-learn, SHAP og kjærlighet til maskinlæring* ❤️
 
 ## Drop-column bootstrap importance
 Filen `drop_column_importance.csv` viser gjennomsnittlig og percentil (5/95) reduksjon i OOT R² når hver feature fjernes (topp ~15). Dette fungerer som en “prediktiv signifikans”-indikator.
