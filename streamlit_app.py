@@ -217,7 +217,7 @@ def load_history():
     return df
 
 
-def build_input_df(year, quarter, population, feature_cols, hist_df: pd.DataFrame, t_mode: str):
+def build_input_df(year, quarter, population, area, feature_cols, hist_df: pd.DataFrame, t_mode: str):
     row = {
         'år': int(year),
         'kvartall': int(quarter),
@@ -226,6 +226,8 @@ def build_input_df(year, quarter, population, feature_cols, hist_df: pd.DataFram
         'sin_q': float(np.sin(2 * np.pi * (quarter / 4.0))),
         'cos_q': float(np.cos(2 * np.pi * (quarter / 4.0))),
     }
+    
+    # Calculate t_index_area (interaction between t_index and area)
     if not hist_df.empty:
         # Finn eksisterende t_index hvis historisk punkt
         match = hist_df[(hist_df['år']==year) & (hist_df['kvartall']==quarter)]
@@ -236,18 +238,35 @@ def build_input_df(year, quarter, population, feature_cols, hist_df: pd.DataFram
             row['t_index'] = int(hist_df['t_index'].max() + 1)
         if t_mode == 'Uten t_index (sett til 0)':
             row['t_index'] = 0
+    
+    # Add t_index_area interaction
+    row['t_index_area'] = float(row['t_index'] * area if area > 0 else 0)
+    
+    # Add quarterly dummies
     for q in [1,2,3,4]:
         row[f'Q_{q}'] = int(1 if quarter == q else 0)
+    
+    # Add area dummies - create all AREA_ columns from feature_cols
+    area_features = [f for f in feature_cols if f.startswith('AREA_')]
+    for area_feat in area_features:
+        area_num = int(area_feat.split('_')[1])
+        row[area_feat] = int(1 if area == area_num else 0)
+    
+    # Initialize any missing features to 0
     for f in feature_cols:
         if f not in row:
             row[f] = float(0)
+    
+    # Create DataFrame with exact feature order
     df = pd.DataFrame([row])[feature_cols]
+    
     # Ensure consistent data types
     for col in df.columns:
-        if col in ['år', 'kvartall', 't_index'] or col.startswith('Q_') or col.startswith('area_'):
+        if col in ['år', 'kvartall', 't_index'] or col.startswith('Q_') or col.startswith('AREA_'):
             df[col] = df[col].astype('int64')
         else:
             df[col] = df[col].astype('float64')
+    
     return df
 
 feature_cols = load_feature_cols()
@@ -387,13 +406,23 @@ with st.sidebar:
 if 't_mode' not in locals():
     t_mode = "Historisk/fremtid sekvens"
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 with col1:
     year = st.number_input("År", min_value=2020, max_value=2100, value=2026)
 with col2:
     quarter = st.selectbox("Kvartall", [1,2,3,4], index=0)
 with col3:
     population = st.number_input("Antall innbyggere", min_value=0, value=270000, step=1000)
+with col4:
+    # Get available areas from the model features
+    area_features = [f for f in feature_cols if f.startswith('AREA_')]
+    area_numbers = [int(f.split('_')[1]) for f in area_features]
+    selected_area = st.selectbox("Delmarkedsområde", options=[0] + sorted(area_numbers), 
+                                help="Velg område (0 = ingen spesifikk område)")
+
+col1, col2 = st.columns(2)
+with col1:
+    t_mode = st.radio("t_index modus", ["Standard sekvens", "Uten t_index (sett til 0)"], index=0)
 
 with st.expander("ℹ️ Hvordan tolke prediksjonen?", expanded=False):
     st.markdown(
@@ -409,7 +438,7 @@ with st.expander("ℹ️ Hvordan tolke prediksjonen?", expanded=False):
 if st.button("Prediker", help="Kjør modell på input over"):
     X_row = None
     try:
-        X_row = build_input_df(year, quarter, population, feature_cols, hist_df, t_mode)
+        X_row = build_input_df(year, quarter, population, selected_area, feature_cols, hist_df, t_mode)
         st.write("Debug - Input data types:", X_row.dtypes.to_dict())
         st.write("Debug - Input shape:", X_row.shape)
         st.write("Debug - Input sample:", X_row.iloc[0].to_dict())
@@ -497,7 +526,7 @@ else:
             if not scenarios_df.empty:
                 X_sample = scenarios_df[feature_cols].head(50)
             else:
-                X_sample = build_input_df(year, quarter, population, feature_cols, hist_df, t_mode)
+                X_sample = build_input_df(year, quarter, population, 1, feature_cols, hist_df, t_mode)  # Use area 1 as default
             shap_values = explainer.shap_values(X_sample)
             shap.summary_plot(shap_values, X_sample, show=False)
             import matplotlib.pyplot as plt
