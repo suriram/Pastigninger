@@ -25,7 +25,8 @@ python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
 # Installer avhengigheter
-pip install -r requirements_minimal.txt
+pip install -r requirements.txt  # (minimal set for Streamlit)
+# For full utvikling: pip install -r requirements_full.txt
 
 # Kjør Streamlit appen
 streamlit run streamlit_app.py
@@ -38,7 +39,7 @@ streamlit run streamlit_app.py
 3. **Deploy**: Velg repository, branch (main) og main file (`streamlit_app.py`)
 4. **Advanced settings**: 
    - Python version: 3.9+
-   - Requirements file: `requirements_minimal.txt`
+   - Requirements file: `requirements.txt` (automatisk oppdaget)
 
 Appen starter automatisk på første besøk og redeployer ved push til main branch.
 
