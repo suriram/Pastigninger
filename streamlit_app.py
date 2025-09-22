@@ -436,23 +436,13 @@ with st.expander("ℹ️ Hvordan tolke prediksjonen?", expanded=False):
     )
 
 if st.button("Prediker", help="Kjør modell på input over"):
-    X_row = None
     try:
         X_row = build_input_df(year, quarter, population, selected_area, feature_cols, hist_df, t_mode)
-        st.write("Debug - Input data types:", X_row.dtypes.to_dict())
-        st.write("Debug - Input shape:", X_row.shape)
-        st.write("Debug - Input sample:", X_row.iloc[0].to_dict())
         pred = model.predict(X_row)[0]
         st.success(f"Estimert påstigninger: {pred:,.0f}")
         st.caption(f"(Tall avrundet) – t_index brukt: {int(X_row['t_index'].iloc[0])}")
     except Exception as e:
         st.error(f"Prediction error: {str(e)}")
-        st.write("Model expects features:", feature_cols)
-        if X_row is not None:
-            st.write("Input DataFrame columns:", list(X_row.columns))
-            st.write("Input DataFrame dtypes:", X_row.dtypes.to_dict())
-        else:
-            st.write("Failed to create input DataFrame")
 
 st.markdown("---")
 st.subheader("Scenario-prediksjoner")

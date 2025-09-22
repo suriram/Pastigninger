@@ -1,0 +1,3 @@
+DATA VALIDERING:
+- outliers_påstigninger: 12
+- missing_quarters: [{'år': 2022, 'manglende_kvartal': [1]}, {'år': 2025, 'manglende_kvartal': [2, 3, 4]}]

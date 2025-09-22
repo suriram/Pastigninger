@@ -1,0 +1,29 @@
+{
+  "created_utc": "20250916T070136Z",
+  "pop_feature": "anall innbyggere",
+  "target": "påstigninger",
+  "n_training_rows": 132,
+  "features": [
+    "anall innbyggere",
+    "år",
+    "t_index",
+    "sin_q",
+    "cos_q",
+    "t_index_area",
+    "Q_1",
+    "Q_2",
+    "Q_3",
+    "Q_4",
+    "AREA_1",
+    "AREA_10",
+    "AREA_11",
+    "AREA_2",
+    "AREA_3",
+    "AREA_4",
+    "AREA_5",
+    "AREA_6",
+    "AREA_7",
+    "AREA_8",
+    "AREA_9"
+  ]
+}

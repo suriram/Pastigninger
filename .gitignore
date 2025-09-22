@@ -22,11 +22,20 @@ artifacts/
 !artifacts/elasticity/*.txt
 !artifacts/elasticity/*.csv
 !artifacts/elasticity/*.json
-# Exclude large/temporary artifacts
-artifacts/shap/
-artifacts/diagnostics/
+!artifacts/metadata/
+!artifacts/metadata/*.json
+!artifacts/metadata/*.csv
+!artifacts/scenarios/
+!artifacts/scenarios/*.csv
+!artifacts/shap/
+!artifacts/shap/*.csv
+!artifacts/shap/*.png
+!artifacts/diagnostics/
+!artifacts/diagnostics/*.csv
+!artifacts/diagnostics/*.json
+!artifacts/diagnostics/*.txt
+# Exclude only very large/temporary artifacts
 artifacts/distribution/
-artifacts/scenarios/
 *.pkl
 *.onnx
 
