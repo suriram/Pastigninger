@@ -1,0 +1,68 @@
+ARTIFACTS STRUKTUR:
+
+/diagnostics
+  - area_metrics.csv
+  - drop_column_importance.csv
+  - oot_metrics.json
+  - pdp_values.csv
+  - residual_stats.json
+  - residuals.csv
+  - validation_report.txt
+/elasticity
+  - elasticity_report.txt
+  - population_elasticity.csv
+  - population_elasticity_by_area.csv
+  - population_elasticity_scenarios.csv
+  - population_elasticity_summary.json
+  - rf_population_elasticity_by_area.csv
+  - rf_population_elasticity_rows.csv
+  - rf_population_elasticity_summary.json
+/metadata
+  - areas.json
+  - feature_cols.json
+  - linear_regression_coeffs.csv
+  - rf_feature_cols.json
+/models
+  - model_manifest.json
+  - modell_pastigninger.joblib
+  - rf_model.joblib
+  - rf_model_20250916T070136Z.joblib
+  - rf_model_20250916T070136Z.joblib.sha256
+  - rf_model_manifest.json
+/models/versions
+  - modell_pastigninger_20250915T144717Z_633c5352.joblib
+  - modell_pastigninger_20250915T145153Z_53972bd7.joblib
+  - modell_pastigninger_20250915T145639Z_53972bd7.joblib
+  - modell_pastigninger_20250915T150043Z_53972bd7.joblib
+  - modell_pastigninger_20250915T150140Z_53972bd7.joblib
+  - modell_pastigninger_20250915T151350Z_53972bd7.joblib
+  - modell_pastigninger_20250915T151446Z_53972bd7.joblib
+  - modell_pastigninger_20250915T160307Z_53972bd7.joblib
+  - modell_pastigninger_20250915T160734Z_53972bd7.joblib
+  - modell_pastigninger_20250915T185425Z_53972bd7.joblib
+  - modell_pastigninger_20250915T190535Z_53972bd7.joblib
+  - modell_pastigninger_20250915T191115Z_53972bd7.joblib
+  - modell_pastigninger_20250916T063437Z_7c7a1071.joblib
+  - modell_pastigninger_20250916T070640Z_7c7a1071.joblib
+  - modell_pastigninger_20250916T071006Z_7c7a1071.joblib
+/reports
+  - linear_regression_equation.txt
+  - model_report.txt
+/scenarios
+  - scenario_predictions.csv
+  - scenario_predictions_20250915T151350Z_53972bd7.csv
+  - scenario_predictions_20250915T151446Z_53972bd7.csv
+  - scenario_predictions_20250915T160307Z_53972bd7.csv
+  - scenario_predictions_20250915T160734Z_53972bd7.csv
+  - scenario_predictions_20250915T185425Z_53972bd7.csv
+  - scenario_predictions_20250915T190535Z_53972bd7.csv
+  - scenario_predictions_20250915T191115Z_53972bd7.csv
+  - scenario_predictions_20250916T063437Z_7c7a1071.csv
+  - scenario_predictions_20250916T070640Z_7c7a1071.csv
+  - scenario_predictions_20250916T071006Z_7c7a1071.csv
+/shap
+  - shap_importance.csv
+  - shap_importance_bootstrap.csv
+  - shap_importance_enriched.csv
+  - shap_per_area.csv
+  - shap_summary.png

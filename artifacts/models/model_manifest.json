@@ -1,0 +1,60 @@
+[
+  {
+    "version": "20250916T071006Z_7c7a1071",
+    "file": "modell_pastigninger_20250916T071006Z_7c7a1071.joblib",
+    "created_utc": "2025-09-16T07:10:06.254492Z",
+    "model_type": "Gradient Boosting",
+    "cv_r2": 0.9965576527726018,
+    "oot_r2": 0.9961135829984139,
+    "oot_rmse": 248430.25909225058,
+    "params": {
+      "learning_rate": 0.05,
+      "max_depth": 2,
+      "n_estimators": 400,
+      "subsample": 0.9
+    },
+    "n_samples": 132,
+    "features": [
+      "anall innbyggere",
+      "år",
+      "t_index",
+      "sin_q",
+      "cos_q",
+      "t_index_area",
+      "Q_1",
+      "Q_2",
+      "Q_3",
+      "Q_4",
+      "AREA_1",
+      "AREA_10",
+      "AREA_11",
+      "AREA_2",
+      "AREA_3",
+      "AREA_4",
+      "AREA_5",
+      "AREA_6",
+      "AREA_7",
+      "AREA_8",
+      "AREA_9"
+    ],
+    "validation_issues": {
+      "outliers_påstigninger": 12,
+      "missing_quarters": [
+        {
+          "år": 2022,
+          "manglende_kvartal": [
+            1
+          ]
+        },
+        {
+          "år": 2025,
+          "manglende_kvartal": [
+            2,
+            3,
+            4
+          ]
+        }
+      ]
+    }
+  }
+]
