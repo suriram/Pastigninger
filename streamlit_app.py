@@ -217,7 +217,7 @@ def load_history():
     return df
 
 
-def build_input_df(year, quarter, population, feature_cols, hist_df: pd.DataFrame, t_mode: str):
+def build_input_df(year, quarter, population, selected_area, feature_cols, hist_df: pd.DataFrame, t_mode: str):
     row = {
         'år': year,
         'kvartall': quarter,
@@ -236,12 +236,23 @@ def build_input_df(year, quarter, population, feature_cols, hist_df: pd.DataFram
             row['t_index'] = int(hist_df['t_index'].max() + 1)
         if t_mode == 'Uten t_index (sett til 0)':
             row['t_index'] = 0
+    
+    # Add t_index_area interaction
+    row['t_index_area'] = row['t_index'] * selected_area
+    
     for q in [1,2,3,4]:
         row[f'Q_{q}'] = 1 if quarter == q else 0
+        
+    # Handle AREA columns - set selected area to 1, others to 0
     for f in feature_cols:
-        if f not in row:
+        if f.startswith('AREA_'):
+            area_num = int(f.split('_')[1])
+            row[f] = 1 if area_num == selected_area else 0
+        elif f not in row:
             row[f] = 0
-    return pd.DataFrame([row])[feature_cols]
+            
+    df = pd.DataFrame([row])[feature_cols]
+    return df
 
 feature_cols = load_feature_cols()
 manifest_df = load_manifest()
@@ -380,13 +391,16 @@ with st.sidebar:
 if 't_mode' not in locals():
     t_mode = "Historisk/fremtid sekvens"
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 with col1:
     year = st.number_input("År", min_value=2020, max_value=2100, value=2026)
 with col2:
     quarter = st.selectbox("Kvartall", [1,2,3,4], index=0)
 with col3:
     population = st.number_input("Antall innbyggere", min_value=0, value=270000, step=1000)
+with col4:
+    selected_area = st.selectbox("Delmarkedsområde", options=[1,2,3,4,5,6,7,8,9,10,11], 
+                                index=0, help="Velg delmarkedsområde for prediksjonen")
 
 with st.expander("ℹ️ Hvordan tolke prediksjonen?", expanded=False):
     st.markdown(
@@ -400,7 +414,7 @@ with st.expander("ℹ️ Hvordan tolke prediksjonen?", expanded=False):
     )
 
 if st.button("Prediker", help="Kjør modell på input over"):
-    X_row = build_input_df(year, quarter, population, feature_cols, hist_df, t_mode)
+    X_row = build_input_df(year, quarter, population, selected_area, feature_cols, hist_df, t_mode)
     pred = model.predict(X_row)[0]
     st.success(f"Estimert påstigninger: {pred:,.0f}")
     st.caption(f"(Tall avrundet) – t_index brukt: {int(X_row['t_index'].iloc[0])}")
@@ -477,7 +491,7 @@ else:
             if not scenarios_df.empty:
                 X_sample = scenarios_df[feature_cols].head(50)
             else:
-                X_sample = build_input_df(year, quarter, population, feature_cols, hist_df, t_mode)
+                X_sample = build_input_df(year, quarter, population, 1, feature_cols, hist_df, t_mode)  # Use area 1 as default
             shap_values = explainer.shap_values(X_sample)
             shap.summary_plot(shap_values, X_sample, show=False)
             import matplotlib.pyplot as plt
