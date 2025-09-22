@@ -46,6 +46,9 @@ ELASTICITY_GLOBAL_PATH = find_artifact('elasticity/population_elasticity.csv', '
 ELASTICITY_AREA_PATH = find_artifact('elasticity/population_elasticity_by_area.csv', 'population_elasticity_by_area.csv')
 ELASTICITY_SCENARIO_PATH = find_artifact('elasticity/population_elasticity_scenarios.csv', 'population_elasticity_scenarios.csv')
 ELASTICITY_METHOD_PATH = find_artifact('elasticity/elasticity_report.txt', 'elasticity_report.txt')
+ELASTICITY_AREA_PATH = find_artifact('elasticity/population_elasticity_by_area.csv', 'population_elasticity_by_area.csv')
+ELASTICITY_SCENARIO_PATH = find_artifact('elasticity/population_elasticity_scenarios.csv', 'population_elasticity_scenarios.csv')
+ELASTICITY_METHOD_PATH = find_artifact('elasticity/elasticity_report.txt', 'elasticity_report.txt')
 DATA_PATH = Path('reg.csv')
 
 st.set_page_config(page_title="Påstigningsprognoser", layout="wide")
@@ -70,25 +73,11 @@ def load_feature_cols():
     if FEATURE_PATH and FEATURE_PATH.exists():
         return json.loads(FEATURE_PATH.read_text(encoding='utf-8'))
     else:
-        # Debug: Try fallback paths on Streamlit Cloud
-        fallback_paths = [
-            Path('artifacts/metadata/feature_cols.json'),
-            Path('./artifacts/metadata/feature_cols.json'), 
-            Path('metadata/feature_cols.json'),
-            Path('./metadata/feature_cols.json')
-        ]
-        
-        for fallback_path in fallback_paths:
-            if fallback_path.exists():
-                st.write(f"🔍 Found feature_cols at fallback path: {fallback_path}")
-                return json.loads(fallback_path.read_text(encoding='utf-8'))
-        
-        # Debug info if all paths fail
-        st.error(f"❌ Could not find feature_cols.json. FEATURE_PATH={FEATURE_PATH}")
-        st.write("Available paths:")
-        for path in fallback_paths:
-            st.write(f"  - {path}: exists={path.exists()}")
-        return []
+        # Try direct path since find_artifact might fail on Streamlit Cloud
+        fallback_path = Path('artifacts/metadata/feature_cols.json')
+        if fallback_path.exists():
+            return json.loads(fallback_path.read_text(encoding='utf-8'))
+    return []
 
 @st.cache_data
 def load_manifest():
@@ -319,46 +308,6 @@ if not feature_cols and model is not None:
     st.warning("⚠️ Using model feature names as fallback since JSON loading failed")
     feature_cols = list(model.feature_names_in_)
 
-# Debug: Vis encoding info
-with st.expander("🔍 Debug Info", expanded=True):  # Expanded by default for cloud debugging
-    st.write("**Feature columns from JSON:**")
-    st.write(feature_cols[:10])  
-    st.write(f"**FEATURE_PATH found:** {FEATURE_PATH}")
-    
-    # List files in artifacts directory for debugging
-    artifacts_dir = Path('artifacts')
-    if artifacts_dir.exists():
-        st.write("**Files in artifacts/metadata:**")
-        metadata_dir = artifacts_dir / 'metadata' 
-        if metadata_dir.exists():
-            metadata_files = list(metadata_dir.glob('*'))
-            st.write([f.name for f in metadata_files])
-        else:
-            st.write("metadata/ directory not found!")
-    else:
-        st.write("artifacts/ directory not found!")
-    
-    if model is not None:
-        st.write("**Model expects:**")
-        st.write(list(model.feature_names_in_[:10]))
-        
-        # Check for encoding issues
-        json_set = set(feature_cols)
-        model_set = set(model.feature_names_in_)
-        if json_set != model_set:
-            st.error("⚠️ Feature name mismatch detected!")
-            st.write("Missing in JSON:", model_set - json_set)
-            st.write("Extra in JSON:", json_set - model_set)
-            
-            # Check for common encoding issues
-            for model_feat in model.feature_names_in_:
-                if model_feat not in feature_cols:
-                    for json_feat in feature_cols:
-                        if model_feat.replace('å', 'Ã¥') == json_feat or model_feat.replace('Ã¥', 'å') == json_feat:
-                            st.write(f"Encoding issue: '{model_feat}' vs '{json_feat}'")
-        else:
-            st.success("✅ Feature names match perfectly")
-
 scenarios_df = load_scenarios()
 shap_imp = load_shap_importance()
 shap_enriched = load_shap_enriched()
@@ -495,34 +444,18 @@ if st.button("Prediker", help="Kjør modell på input over"):
     try:
         X_row = build_input_df(year, quarter, population, feature_cols, hist_df, t_mode)
         
-        # Debug info før prediksjon
-        st.write("**Debug: Input DataFrame info**")
-        st.write(f"Shape: {X_row.shape}")
-        st.write(f"Columns: {list(X_row.columns)}")
-        
         # Check feature name matching
         missing_features = set(model.feature_names_in_) - set(X_row.columns)
-        extra_features = set(X_row.columns) - set(model.feature_names_in_)
         
-        if missing_features:
-            st.error(f"Missing features: {missing_features}")
-        if extra_features:
-            st.warning(f"Extra features: {extra_features}")
-            
         if not missing_features:  # Only predict if no missing features
             pred = model.predict(X_row)[0]
             st.success(f"Estimert påstigninger: {pred:,.0f}")
             st.caption(f"(Tall avrundet) – t_index brukt: {int(X_row['t_index'].iloc[0])}")
         else:
-            st.error("Kan ikke predikere på grunn av manglende features. Sjekk encoding/feature matching over.")
+            st.error("Kan ikke predikere på grunn av manglende features.")
             
     except Exception as e:
         st.error(f"Prediksjons-feil: {e}")
-        st.write("**Debug info:**")
-        st.write(f"Feature cols: {feature_cols}")
-        if 'X_row' in locals():
-            st.write(f"Input columns: {list(X_row.columns)}")
-            st.write(f"Model expects: {list(model.feature_names_in_)}")
         st.exception(e)
 
 st.markdown("---")
